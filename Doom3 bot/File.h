@@ -114,51 +114,6 @@ public:
 	//virtual int				WriteMat3(const idMat3 &mat);
 };
 
-
-class idFile_Memory : public idFile {
-	friend class			idFileSystemLocal;
-
-public:
-	idFile_Memory(void);	// file for writing without name
-	idFile_Memory(const char *name);	// file for writing
-	idFile_Memory(const char *name, char *data, int length);	// file for writing
-	idFile_Memory(const char *name, const char *data, int length);	// file for reading
-	virtual					~idFile_Memory(void);
-
-	virtual const char *	GetName(void) { return name.c_str(); }
-	virtual const char *	GetFullPath(void) { return name.c_str(); }
-	virtual int				Read(void *buffer, int len);
-	virtual int				Write(const void *buffer, int len);
-	virtual int				Length(void);
-	virtual ID_TIME_T			Timestamp(void);
-	virtual int				Tell(void);
-	virtual void			ForceFlush(void);
-	virtual void			Flush(void);
-	virtual int				Seek(long offset, fsOrigin_t origin);
-
-	// changes memory file to read only
-	virtual void			MakeReadOnly(void);
-	// clear the file
-	virtual void			Clear(bool freeMemory = true);
-	// set data for reading
-	void					SetData(const char *data, int length);
-	// returns const pointer to the memory buffer
-	const char *			GetDataPtr(void) const { return filePtr; }
-	// set the file granularity
-	void					SetGranularity(int g) { assert(g > 0); granularity = g; }
-
-private:
-	string					name;			// name of the file
-	int						mode;			// open mode
-	int						maxSize;		// maximum size of file
-	int						fileSize;		// size of the file
-	int						allocated;		// allocated size
-	int						granularity;	// file granularity
-	char *					filePtr;		// buffer holding the file data
-	char *					curPtr;			// current read/write pointer
-};
-
-
 class idFile_BitMsg : public idFile {
 	friend class			idFileSystemLocal;
 
@@ -182,64 +137,6 @@ private:
 	string					name;			// name of the file
 	int						mode;			// open mode
 	idBitMsg *				msg;
-};
-
-
-class idFile_Permanent : public idFile {
-	friend class			idFileSystemLocal;
-
-public:
-	idFile_Permanent(void);
-	virtual					~idFile_Permanent(void);
-
-	virtual const char *	GetName(void) { return name.c_str(); }
-	virtual const char *	GetFullPath(void) { return fullPath.c_str(); }
-	virtual int				Read(void *buffer, int len);
-	virtual int				Write(const void *buffer, int len);
-	virtual int				Length(void);
-	virtual ID_TIME_T			Timestamp(void);
-	virtual int				Tell(void);
-	virtual void			ForceFlush(void);
-	virtual void			Flush(void);
-	virtual int				Seek(long offset, fsOrigin_t origin);
-
-	// returns file pointer
-	FILE *					GetFilePtr(void) { return o; }
-
-private:
-	string					name;			// relative path of the file - relative path
-	string					fullPath;		// full file path - OS path
-	int						mode;			// open mode
-	int						fileSize;		// size of the file
-	FILE *					o;				// file handle
-	bool					handleSync;		// true if written data is immediately flushed
-};
-
-
-class idFile_InZip : public idFile {
-	friend class			idFileSystemLocal;
-
-public:
-	idFile_InZip(void);
-	virtual					~idFile_InZip(void);
-
-	virtual const char *	GetName(void) { return name.c_str(); }
-	virtual const char *	GetFullPath(void) { return fullPath.c_str(); }
-	virtual int				Read(void *buffer, int len);
-	virtual int				Write(const void *buffer, int len);
-	virtual int				Length(void);
-	virtual ID_TIME_T			Timestamp(void);
-	virtual int				Tell(void);
-	virtual void			ForceFlush(void);
-	virtual void			Flush(void);
-	virtual int				Seek(long offset, fsOrigin_t origin);
-
-private:
-	string					name;			// name of the file in the pak
-	string					fullPath;		// full file path including pak file name
-	int						zipFilePos;		// zip file info position in pak
-	int						fileSize;		// size of the file
-	void *					z;				// unzip info
 };
 
 #endif /* !__FILE_H__ */
