@@ -19,8 +19,12 @@ public:
 
 
 private:
-	// Help methods
+	/// Help methods
+    /*
+    This challanges the server and stores vital information necessary
+    to continue establishing the server*/
 	void ChallangeServer();
+
 
 	// Member variables
 	SOCKET m_socket;
@@ -29,6 +33,8 @@ private:
 	int m_clientId;
 	int m_clientChecksum;
 	int m_messageSequence;
+    int m_challangeNr;
+    int m_serverId;
 
 	int m_deltaTime;
 	int m_frame;

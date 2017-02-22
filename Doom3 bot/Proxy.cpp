@@ -53,6 +53,7 @@ void Proxy::EstablishConnection()
 
 void Proxy::ChallangeServer()
 {
+    /// Send challange first
 	idBitMsg message;
 	byte messageBuffer[16384];
 	message.Init(messageBuffer, sizeof(messageBuffer));
@@ -66,4 +67,24 @@ void Proxy::ChallangeServer()
 	{
 		cout << "failed to send challange" << endl;
 	}
+
+    /// Receive reply
+    char recieveBuffer[1000]; //// Might need to be bigger!
+    int recieveAddrSize = sizeof(m_recieveAddress);
+    result = recvfrom(m_socket, recieveBuffer, 1024, 0, (SOCKADDR*)&m_recieveAddress, &recieveAddrSize);
+    if (result == SOCKET_ERROR)
+    {
+        std::cout << "recvfrom failed with error:  " << WSAGetLastError() << std::endl;
+        return;
+    }
+    memcpy(&messageBuffer, recieveBuffer, sizeof(recieveBuffer));
+    message.Init(messageBuffer, sizeof(messageBuffer));
+    message.SetSize(sizeof(messageBuffer));
+
+
+    char buffer[1024];
+    message.ReadShort();
+    message.ReadString(buffer, 1024);
+    m_challangeNr = message.ReadLong();
+    m_serverId = message.ReadShort();
 }
