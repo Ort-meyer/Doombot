@@ -25,6 +25,11 @@ private:
     to continue establishing the server*/
 	void ChallangeServer();
 
+    // Sends the provided message to the server. Returns result from sendto
+    int SendToServer(const idBitMsg& p_msg);
+    // Recieves message from server and stores in p_msg. Does not need to be initialized (I think)
+    int RecieveFromServer(idBitMsg* p_msg);
+
 
 	// Member variables
 	SOCKET m_socket;
