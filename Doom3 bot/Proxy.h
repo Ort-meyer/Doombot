@@ -25,6 +25,9 @@ private:
     to continue establishing the server*/
 	void ChallangeServer();
 
+    int SendToServer(const idBitMsg& p_msg);
+    int RecieveFromServer(idBitMsg* p_msg);
+
 
 	// Member variables
 	SOCKET m_socket;

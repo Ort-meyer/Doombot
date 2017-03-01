@@ -54,37 +54,51 @@ void Proxy::EstablishConnection()
 void Proxy::ChallangeServer()
 {
     /// Send challange first
-	idBitMsg message;
-	byte messageBuffer[16384];
-	message.Init(messageBuffer, sizeof(messageBuffer));
+	idBitMsg t_msg;
+	byte t_msgBuffer[16384];
+    t_msg.Init(t_msgBuffer, sizeof(t_msgBuffer));
 
-	message.WriteShort(-1);
-	message.WriteString("challange");
+    t_msg.WriteShort(-1);
+    t_msg.WriteString("challange");
 
-	int result = sendto(m_socket, (char*)message.GetData(), message.GetSize(), 0, (SOCKADDR*)&m_recieveAddress, sizeof(m_recieveAddress));
-
-	if (result == SOCKET_ERROR)
-	{
-		cout << "failed to send challange" << endl;
-	}
+    int result = SendToServer(t_msg);
 
     /// Receive reply
-    char recieveBuffer[1000]; //// Might need to be bigger!
-    int recieveAddrSize = sizeof(m_recieveAddress);
-    result = recvfrom(m_socket, recieveBuffer, 1024, 0, (SOCKADDR*)&m_recieveAddress, &recieveAddrSize);
+    result = RecieveFromServer(&t_msg);
     if (result == SOCKET_ERROR)
     {
         std::cout << "recvfrom failed with error:  " << WSAGetLastError() << std::endl;
         return;
     }
-    memcpy(&messageBuffer, recieveBuffer, sizeof(recieveBuffer));
-    message.Init(messageBuffer, sizeof(messageBuffer));
-    message.SetSize(sizeof(messageBuffer));
-
-
     char buffer[1024];
-    message.ReadShort();
-    message.ReadString(buffer, 1024);
-    m_challangeNr = message.ReadLong();
-    m_serverId = message.ReadShort();
+    t_msg.ReadShort();
+    t_msg.ReadString(buffer, 1024);
+    m_challangeNr = t_msg.ReadLong();
+    m_serverId = t_msg.ReadShort();
+}
+
+int Proxy::SendToServer(const idBitMsg & p_msg)
+{
+   return sendto(m_socket, (char*)p_msg.GetData(), p_msg.GetSize(), 0, (SOCKADDR*)&m_recieveAddress, sizeof(m_recieveAddress));
+}
+
+int Proxy::RecieveFromServer(idBitMsg * p_msg)
+{
+    char t_recieveBuffer[1000]; //// Might need to be bigger!
+    int t_recieveAddrSize = sizeof(m_recieveAddress);
+    int t_res = recvfrom(m_socket, t_recieveBuffer, 1024, 0, (SOCKADDR*)&m_recieveAddress, &t_recieveAddrSize);
+    if (t_res == SOCKET_ERROR)
+    {
+        return t_res;
+    }
+
+    // Copy over data from server
+    byte t_msgDataBuffer[16384];
+    memcpy(p_msg->GetData, t_recieveBuffer, sizeof(t_recieveBuffer));
+
+    // Initialize recieve message
+    p_msg = new idBitMsg();
+    p_msg->Init(t_msgDataBuffer, sizeof(t_msgDataBuffer));
+
+    return t_res;
 }
