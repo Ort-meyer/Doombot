@@ -15,7 +15,7 @@ public:
 	~Proxy();
 
 	void EstablishConnection();
-	void HandleMessag();
+	void HandleMessage();
 
 
 private:
