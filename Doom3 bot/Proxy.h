@@ -20,10 +20,20 @@ public:
 
 private:
 	/// Help methods
-    /*
+    /**
     This challanges the server and stores vital information necessary
     to continue establishing the server*/
 	void ChallangeServer();
+    /**
+    Sends the connect request to server. This has to be done twice during
+    the entire hand shake.*/
+    void SendConnectRequest();
+
+    /**
+    Recieves and returns a checksum to fool the server, I would think.
+    It's a necessary step no less*/
+    void HandleGamePakChecksum();
+
 
     // Sends the provided message to the server. Returns result from sendto
     int SendToServer(const idBitMsg& p_msg);

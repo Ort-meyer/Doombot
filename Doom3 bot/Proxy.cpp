@@ -49,6 +49,7 @@ Proxy::~Proxy()
 void Proxy::EstablishConnection()
 {
 	ChallangeServer();
+    SendConnectRequest();
 }
 
 void Proxy::ChallangeServer()
@@ -64,17 +65,56 @@ void Proxy::ChallangeServer()
     int result = SendToServer(t_msg);
 
     /// Receive reply
-    result = RecieveFromServer(&t_msg);
-    if (result == SOCKET_ERROR)
-    {
-        std::cout << "recvfrom failed with error:  " << WSAGetLastError() << std::endl;
-        return;
-    }
+    RecieveFromServer(&t_msg);
+
     char buffer[1024];
     t_msg.ReadShort();
     t_msg.ReadString(buffer, 1024);
     m_challangeNr = t_msg.ReadLong();
     m_serverId = t_msg.ReadShort();
+}
+
+void Proxy::SendConnectRequest()
+{
+    idBitMsg t_msg;
+    byte t_msgBuffer[16384];
+
+    t_msg.Init(t_msgBuffer, sizeof(t_msgBuffer));
+
+    // How these messages look have been extracted empirically from doom3
+    t_msg.WriteShort(-1);
+    t_msg.WriteString("connect");
+    t_msg.WriteLong(65577);
+    t_msg.WriteShort(0);
+    t_msg.WriteLong(m_clientChecksum);
+    t_msg.WriteLong(m_challangeNr);
+    t_msg.WriteShort(m_clientId);
+    t_msg.WriteLong(12000);
+    t_msg.WriteString("");
+    t_msg.WriteString("");
+    t_msg.WriteShort(0);
+
+    SendToServer(t_msg);
+}
+
+void Proxy::HandleGamePakChecksum()
+{
+    idBitMsg t_msg;
+    RecieveFromServer(&t_msg);
+    // t_msg.SetSize(sizeof(msgBuf)); // This SHOULD NOT have to be done. At all
+    t_msg.SetReadBit(0);
+    t_msg.SetReadCount(0);
+
+    t_msg.ReadShort();
+    chartemp[2048];
+    t_msg.ReadString(temp, sizeof(temp));
+    for (int c = 0; c < 10; c++)
+    {
+        msg.ReadLong();
+    }
+
+    long t_checksum = msg.ReadLong();
+
 }
 
 int Proxy::SendToServer(const idBitMsg & p_msg)
