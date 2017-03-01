@@ -40,6 +40,9 @@ private:
     // Recieves message from server and stores in p_msg. Does not need to be initialized (I think)
     int RecieveFromServer(idBitMsg* p_msg);
 
+    int SendToServer(const idBitMsg& p_msg);
+    int RecieveFromServer(idBitMsg* p_msg);
+
 
 	// Member variables
 	SOCKET m_socket;
