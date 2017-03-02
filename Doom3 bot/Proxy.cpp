@@ -50,6 +50,9 @@ void Proxy::EstablishConnection()
 {
 	ChallangeServer();
     SendConnectRequest();
+	HandleGamePakChecksum();
+	// Do we really need to do this again?
+	SendConnectRequest();
 }
 
 void Proxy::ChallangeServer()
@@ -105,16 +108,49 @@ void Proxy::HandleGamePakChecksum()
     t_msg.SetReadBit(0);
     t_msg.SetReadCount(0);
 
+	// Read some stuff that's in the way for our checksum
     t_msg.ReadShort();
-    chartemp[2048];
+    char temp[2048];
     t_msg.ReadString(temp, sizeof(temp));
     for (int c = 0; c < 10; c++)
     {
-        msg.ReadLong();
+		t_msg.ReadLong();
     }
 
-    long t_checksum = msg.ReadLong();
+    long t_checksum = t_msg.ReadLong();
 
+	// Write message to send to server
+	byte t_msgBuffer[16384];
+	t_msg.Init(t_msgBuffer, sizeof(t_msgBuffer));
+
+	int	t_sendChecksums[128];
+	t_sendChecksums[0] = 598628755;
+	t_sendChecksums[1] = 1718344508;
+	t_sendChecksums[2] = 156984747;
+	t_sendChecksums[3] = -1879296479;
+	t_sendChecksums[4] = 1985892235;
+	t_sendChecksums[5] = -847654872;
+	t_sendChecksums[6] = -987836979;
+	t_sendChecksums[7] = 1076120544;
+	t_sendChecksums[8] = 684853489;
+	t_sendChecksums[9] = 0;
+
+	t_msg.SetWriteBit(0);
+
+	t_msg.WriteShort(-1);
+	t_msg.WriteString("pureClient");
+	t_msg.WriteLong(m_challangeNr);
+	t_msg.WriteShort(m_clientId);
+
+	// TODO rewrite into for loop
+	int i = 0;
+	while (t_sendChecksums[i]) {
+		t_msg.WriteLong(t_sendChecksums[i++]);
+	}
+	t_msg.WriteLong(0);
+	t_msg.WriteLong(t_checksum);
+
+	SendToServer(t_msg);
 }
 
 int Proxy::SendToServer(const idBitMsg & p_msg)
