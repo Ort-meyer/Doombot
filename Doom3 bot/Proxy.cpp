@@ -256,3 +256,73 @@ void Proxy::HandleReliableServerMessage()
         }
     }
 }
+
+void Proxy::HandleUnreliableServerMessage()
+{
+    //int i, j, index, id, numDuplicatedUsercmds, aheadOfServer, numUsercmds, delta;
+    //int serverGameInitId, serverGameFrame, serverGameTime;
+    ////idDict serverSI;
+    ////usercmd_t *last;
+    //bool pureWait;
+    //
+    //serverGameInitId = msg.ReadLong();
+    //
+    //id = msg.ReadByte();
+    //switch (id)
+    //{
+    //    //Empty
+    //case 0:
+    //{
+    //    break;
+    //
+    //}
+    ////Ping
+    //case 1:
+    //{
+    //    ProcessPingFromServer();
+    //}
+    ////Snapshot
+    //case 3:
+    //{
+    //    //std::cout << "Snapshot" << std::endl;
+    //    // if the snapshot is from a different game
+    //    if (serverGameInitId != gameInitId)
+    //    {
+    //        std::cout << "ignoring snapshot with != gameInitId\n";
+    //    }
+    //
+    //
+    //    snapshotSequence = msg.ReadLong();
+    //    snapshotGameFrame = msg.ReadLong();
+    //    snapshotGameTime = msg.ReadLong();
+    //    numDuplicatedUsercmds = msg.ReadByte();
+    //    aheadOfServer = msg.ReadShort();
+    //
+    //    ProcessSnapshot(clientNum, snapshotSequence, snapshotGameFrame, snapshotGameTime, numDuplicatedUsercmds, aheadOfServer, msg);
+    //
+    //    // if the snapshot is newer than the clients current game time
+    //    if (gameTime < snapshotGameTime)
+    //    {
+    //        gameTime = snapshotGameTime;
+    //    }
+    //    gameFrame = snapshotGameFrame;
+    //    clientTime = snapshotGameTime;
+    //    gameTime = snapshotGameTime;
+    //    SendUserCmdsToServer();
+    //    delta = gameTime - (snapshotGameTime + clientPrediction);
+    //
+    //    lastSnapshotTime = clientTime;
+    //
+    //
+    //    //std::cout << "received snapshot, gameInitId = " << gameInitId << " gameTime = " << gameTime << std::endl;
+    //
+    //
+    //    if (numDuplicatedUsercmds)
+    //    {
+    //        //std::cout << "server duplicated %d user commands before snapshot %d\n", numDuplicatedUsercmds, snapshotGameFrame;
+    //    }
+    //    break;
+    //}
+    //
+    //}
+}

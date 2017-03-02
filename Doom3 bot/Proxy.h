@@ -51,6 +51,8 @@ private:
 
     void HandleReliableServerMessage();
 
+    void HandleUnreliableServerMessage();
+
 	// Member variables
 	SOCKET m_socket;
 	sockaddr_in m_recieveAddress;
