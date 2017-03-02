@@ -209,7 +209,50 @@ void Proxy::RecieveUpdateFromServer()
     
     ////lastPacketTime = clientTime;
     ////std::cout << "Process Lyckades" << std::endl;
-    //ProcessReliableServerMessages();
+    HandleReliableServerMessage();
     //ProcessUnreliableServerMessage(msg);
 
+}
+
+void Proxy::HandleReliableServerMessage()
+{
+    idBitMsg	t_msg;
+    byte		t_msgBuffer[16384];
+
+    t_msg.Init(t_msgBuffer, sizeof(t_msgBuffer));
+
+    while (m_msgChannel.GetReliableMessage(t_msg))
+    {
+        byte type = t_msg.ReadByte();
+        switch (type)
+        {
+        //Print
+        case 4:
+        {
+            char string[1024];
+            t_msg.ReadString(string, 1024);
+            std::cout << string << std::endl;
+            break;
+        }
+        //Disconnect
+        case 5:
+        {
+            //ProcessDisconnect();
+            break;
+        }
+        //Applysnapshot
+        case 6:
+        {
+            //serverMessageSequence = t_msg.ReadLong();
+           // ProcessApplySnapshot();
+            break;
+        }
+        //EnterGame
+        case 8:
+        {
+            //SendUserInfoToServer();
+            break;
+        }
+        }
+    }
 }

@@ -49,6 +49,8 @@ private:
     /// Methods to interpret the messages sent from the server
     void RecieveUpdateFromServer();
 
+    void HandleReliableServerMessage();
+
 	// Member variables
 	SOCKET m_socket;
 	sockaddr_in m_recieveAddress;
