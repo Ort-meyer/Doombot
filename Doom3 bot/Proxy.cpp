@@ -4,7 +4,20 @@
 
 Proxy::Proxy()
 {
+    // Setup connection stuff
+    m_socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+    m_recieveAddress.sin_family = AF_INET;
+    m_recieveAddress.sin_port = htons(27666);
+    m_recieveAddress.sin_addr.s_addr = inet_addr("127.0.0.1");
+    WSAStartup(MAKEWORD(2, 2), &m_wsadata);
 
+    m_clientId = 32;
+    m_clientChecksum = 84287817;
+    m_messageSequence = 1;
+
+    m_compressor = idCompressor::AllocRunLength_ZeroBased();
+    m_msgChannel = idMsgChannel();
+    m_msgChannel.Init(32);    
 }
 
 
