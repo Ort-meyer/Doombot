@@ -168,6 +168,52 @@ void Proxy::RecieveFinalServerInfo()
 
 }
 
+void Proxy::SendUserInfo()
+{
+    idBitMsg t_msg;
+    byte t_msgBuffer[16384];
+    t_msg.Init(t_msgBuffer, sizeof(t_msgBuffer));
+
+    t_msg.WriteByte(1);
+
+
+    t_msg.WriteString("ui_showGun");
+    t_msg.WriteString("1");
+
+    t_msg.WriteString("ui_autoReload");
+    t_msg.WriteString("1");
+
+    t_msg.WriteString("ui_autoSwitch");
+    t_msg.WriteString("1");
+
+    t_msg.WriteString("ui_team");
+    t_msg.WriteString("1");
+
+    t_msg.WriteString("ui_skin");
+    t_msg.WriteString("skins/characters/player/marine_mp");
+
+    t_msg.WriteString("ui_name");
+    t_msg.WriteString("BotPlayer");
+
+    t_msg.WriteString("ui_chat");
+    t_msg.WriteString("0");
+
+    t_msg.WriteString("ui_spectate");
+    t_msg.WriteString("Play");
+
+    t_msg.WriteString("ui_ready");
+    t_msg.WriteString("Not Ready");
+
+    t_msg.WriteString("");
+
+    m_msgChannel.SendReliableMessage(t_msg);
+
+    //SendEmptyToServer(false);
+    //SendEmptyToServer(false);
+    //SendEmptyToServer(false);
+    //SendEmptyToServer(false);
+}
+
 int Proxy::SendToServer(const idBitMsg & p_msg)
 {
    return sendto(m_socket, (char*)p_msg.GetData(), p_msg.GetSize(), 0, (SOCKADDR*)&m_recieveAddress, sizeof(m_recieveAddress));
@@ -250,7 +296,7 @@ void Proxy::HandleReliableServerMessage()
         //EnterGame
         case 8:
         {
-            //SendUserInfoToServer();
+            SendUserInfo();
             break;
         }
         }

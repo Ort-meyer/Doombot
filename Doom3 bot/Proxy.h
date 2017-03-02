@@ -38,6 +38,8 @@ private:
 	Stores some server info when we're finally connected*/
 	void RecieveFinalServerInfo();
 
+    void SendUserInfo();
+
 
     /// Simple methods to send and recieve messages
     // Sends the provided message to the server. Returns result from sendto
