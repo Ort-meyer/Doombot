@@ -15,11 +15,11 @@ public:
 	~Proxy();
 
 	void EstablishConnection();
-	void HandleMessage();
+    void StartLoop();
 
 
 private:
-	/// Help methods
+	/// Help methods to connect
     /**
     This challanges the server and stores vital information necessary
     to continue establishing the server*/
@@ -38,14 +38,16 @@ private:
 	Stores some server info when we're finally connected*/
 	void RecieveFinalServerInfo();
 
+
+    /// Simple methods to send and recieve messages
     // Sends the provided message to the server. Returns result from sendto
     int SendToServer(const idBitMsg& p_msg);
     // Recieves message from server and stores in p_msg. Does not need to be initialized (I think)
     int RecieveFromServer(idBitMsg* p_msg);
 
-    int SendToServer(const idBitMsg& p_msg);
-    int RecieveFromServer(idBitMsg* p_msg);
 
+    /// Methods to interpret the messages sent from the server
+    void RecieveUpdateFromServer();
 
 	// Member variables
 	SOCKET m_socket;
@@ -58,9 +60,14 @@ private:
     int m_serverId;
 
 	int m_clientNr;
-	int m_gameId;
-	int m_gameFrame;
-	int m_gameTime;
+
+	int m_clientGameId;
+	int m_clientGameFrame;
+	int m_clientGameTime;
+
+    int m_serverGameId;
+    int m_serverGameFrame;
+    int m_serverGameTime;
 
 	int m_deltaTime;
 	int m_frame;

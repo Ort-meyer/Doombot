@@ -5,39 +5,6 @@
 Proxy::Proxy()
 {
 
-
-	// Card coded values extrated from doom3
-	m_clientId = 32;
-	m_clientChecksum = 84287817;
-	m_messageSequence = 1;
-
-	m_compressor = idCompressor::AllocRunLength_ZeroBased();
-	m_msgChannel = idMsgChannel();
-	
-	m_msgChannel.Init(32);
-
-	int result = WSAStartup(MAKEWORD(2, 2), &m_wsadata);
-	//if (result != NO_ERROR) {
-	//	std::cout << "WSAStartup failed with error:  " << result << std::endl;
-	//}
-
-	// Create socket
-	m_socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-	//if (m_socket == INVALID_SOCKET)
-	//{
-	//	std::cout << "Socket failed with error:  " << result << std::endl;
-	//	WSACleanup();
-	//}
-	// Create address
-	m_recieveAddress.sin_family = AF_INET;
-	m_recieveAddress.sin_port = htons(27666); // hard coded port
-	m_recieveAddress.sin_addr.s_addr = inet_addr("127.0.0.1"); // hard coded to local address
-
-	m_messageQueue = queue<idBitMsg>();
-
-	m_deltaTime = 0;
-	m_frame = 0;
-
 }
 
 
@@ -53,6 +20,15 @@ void Proxy::EstablishConnection()
 	HandleGamePakChecksum();
 	// Do we really need to do this again?
 	SendConnectRequest();
+    RecieveFinalServerInfo();
+}
+
+void Proxy::StartLoop()
+{
+    while (true)
+    {
+        RecieveUpdateFromServer();
+    }
 }
 
 void Proxy::ChallangeServer()
@@ -166,11 +142,17 @@ void Proxy::RecieveFinalServerInfo()
 	t_msg.ReadShort();
 	t_msg.ReadString(temp, sizeof(temp));
 
-	clientNum = msg.ReadLong();
-	gameInitId = serverGameInitId = msg.ReadLong();
-	gameFrame = serverGameFrame = msg.ReadLong();
-	gameTime = serverGameTime = msg.ReadLong();
-	std::cout << "GameInitId: " << gameInitId << std::endl;
+	m_clientNr = t_msg.ReadLong();
+
+    m_serverGameId = t_msg.ReadLong();
+    m_serverGameFrame = t_msg.ReadLong();
+    m_serverGameTime = t_msg.ReadLong();
+
+    m_clientGameId = m_serverGameId;
+    m_clientGameFrame = m_serverGameFrame;
+    m_clientGameTime = m_serverGameTime;
+
+
 }
 
 int Proxy::SendToServer(const idBitMsg & p_msg)
@@ -190,11 +172,31 @@ int Proxy::RecieveFromServer(idBitMsg * p_msg)
 
     // Copy over data from server
     byte t_msgDataBuffer[16384];
-    memcpy(p_msg->GetData, t_recieveBuffer, sizeof(t_recieveBuffer));
+    memcpy(t_msgDataBuffer, t_recieveBuffer, sizeof(t_recieveBuffer));
 
     // Initialize recieve message
     p_msg = new idBitMsg();
     p_msg->Init(t_msgDataBuffer, sizeof(t_msgDataBuffer));
 
     return t_res;
+}
+
+void Proxy::RecieveUpdateFromServer()
+{
+    idBitMsg t_msg;
+
+
+    RecieveFromServer(&t_msg);
+
+    t_msg.ReadShort();
+
+    if (!m_msgChannel.Process(m_clientGameTime, t_msg, m_messageSequence)) {
+        return;		// out of order, duplicated, fragment, etc.
+    }
+    
+    ////lastPacketTime = clientTime;
+    ////std::cout << "Process Lyckades" << std::endl;
+    //ProcessReliableServerMessages();
+    //ProcessUnreliableServerMessage(msg);
+
 }
