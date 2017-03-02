@@ -153,6 +153,26 @@ void Proxy::HandleGamePakChecksum()
 	SendToServer(t_msg);
 }
 
+void Proxy::RecieveFinalServerInfo()
+{
+	idBitMsg t_msg;
+	RecieveFromServer(&t_msg);
+
+	//t_msg.SetSize(sizeof(msgBuf));
+	t_msg.SetReadBit(0);// not needed, is it?
+	t_msg.SetReadCount(0);// not needed, is it?
+
+	char temp[1024];
+	t_msg.ReadShort();
+	t_msg.ReadString(temp, sizeof(temp));
+
+	clientNum = msg.ReadLong();
+	gameInitId = serverGameInitId = msg.ReadLong();
+	gameFrame = serverGameFrame = msg.ReadLong();
+	gameTime = serverGameTime = msg.ReadLong();
+	std::cout << "GameInitId: " << gameInitId << std::endl;
+}
+
 int Proxy::SendToServer(const idBitMsg & p_msg)
 {
    return sendto(m_socket, (char*)p_msg.GetData(), p_msg.GetSize(), 0, (SOCKADDR*)&m_recieveAddress, sizeof(m_recieveAddress));

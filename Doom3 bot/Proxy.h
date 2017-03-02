@@ -34,6 +34,9 @@ private:
     It's a necessary step no less*/
     void HandleGamePakChecksum();
 
+	/**
+	Stores some server info when we're finally connected*/
+	void RecieveFinalServerInfo();
 
     // Sends the provided message to the server. Returns result from sendto
     int SendToServer(const idBitMsg& p_msg);
@@ -53,6 +56,11 @@ private:
 	int m_messageSequence;
     int m_challangeNr;
     int m_serverId;
+
+	int m_clientNr;
+	int m_gameId;
+	int m_gameFrame;
+	int m_gameTime;
 
 	int m_deltaTime;
 	int m_frame;
