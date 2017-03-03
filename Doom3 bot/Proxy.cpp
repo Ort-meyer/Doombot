@@ -5,11 +5,15 @@
 Proxy::Proxy()
 {
     // Setup connection stuff
-    m_socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+
+	//DEBUGSHIT();
+	m_socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
     m_recieveAddress.sin_family = AF_INET;
     m_recieveAddress.sin_port = htons(27666);
     m_recieveAddress.sin_addr.s_addr = inet_addr("127.0.0.1");
-    WSAStartup(MAKEWORD(2, 2), &m_wsadata);
+	//m_recieveAddress.sin_addr.s_addr = inet_addr("194.47.155.248");
+    int res = WSAStartup(MAKEWORD(2, 2), &m_wsadata);
+	m_socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
     m_clientId = 32;
     m_clientChecksum = 84287817;
@@ -44,6 +48,7 @@ void Proxy::StartLoop()
     while (true)
     {
         RecieveUpdateFromServer();
+		PokeServer(); // Needed?
 		SyncTime();
 		m_frame++;
     }
@@ -55,14 +60,14 @@ void Proxy::ChallangeServer()
 	idBitMsg t_msg;
 	byte t_msgBuffer[16384];
     t_msg.Init(t_msgBuffer, sizeof(t_msgBuffer));
-
+	
     t_msg.WriteShort(-1);
-    t_msg.WriteString("challange");
-
+    t_msg.WriteString("challenge");
+	
     int result = SendToServer(t_msg);
-
+	t_msg = idBitMsg();
     /// Receive reply
-    RecieveFromServer(&t_msg);
+    result = RecieveFromServer(&t_msg);
 
     char buffer[1024];
     t_msg.ReadShort();
@@ -321,6 +326,8 @@ void Proxy::QueueUserInput()
 	t_msg.WriteShort(m_clientTime * 16);//Angles[1] -9211
 	t_msg.WriteShort(0);//Angles[2]
 
+	 
+	 
 
 	idBitMsg t_sendMsg;
 
@@ -337,7 +344,7 @@ int Proxy::SendToServer(const idBitMsg & p_msg)
 
 int Proxy::RecieveFromServer(idBitMsg * p_msg)
 {
-    char t_recieveBuffer[1000]; //// Might need to be bigger!
+    char t_recieveBuffer[16384]; //// Might need to be bigger!
     int t_recieveAddrSize = sizeof(m_recieveAddress);
     int t_res = recvfrom(m_socket, t_recieveBuffer, 1024, 0, (SOCKADDR*)&m_recieveAddress, &t_recieveAddrSize);
     if (t_res == SOCKET_ERROR)
@@ -350,8 +357,16 @@ int Proxy::RecieveFromServer(idBitMsg * p_msg)
     memcpy(t_msgDataBuffer, t_recieveBuffer, sizeof(t_recieveBuffer));
 
     // Initialize recieve message
-    p_msg = new idBitMsg();
+    //p_msg = new idBitMsg();
     p_msg->Init(t_msgDataBuffer, sizeof(t_msgDataBuffer));
+	p_msg->SetSize(sizeof(t_msgDataBuffer));
+
+
+	//char buffer[1024];
+	//p_msg->ReadShort();
+	//p_msg->ReadString(buffer, 1024);
+	//m_challangeNr = p_msg->ReadLong();
+	//m_serverId = p_msg->ReadShort();
 
     return t_res;
 }
@@ -363,7 +378,7 @@ void Proxy::RecieveUpdateFromServer()
 
     RecieveFromServer(&t_msg);
 
-    t_msg.ReadShort();
+    t_msg.ReadShort(); // Read id. Needed?
 
     if (!m_msgChannel.Process(m_clientGameTime, t_msg, m_messageSequence)) {
         return;		// out of order, duplicated, fragment, etc.
