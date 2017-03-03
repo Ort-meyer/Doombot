@@ -56,6 +56,11 @@ private:
 	Sends an empty message to the server. This is apparently really necessary*/
 	void PokeServer();
 
+	/**
+	Synchronizes time with the server*/
+	void SyncTime();
+
+
 
     /// Simple methods to send and recieve messages
     // Sends the provided message to the server. Returns result from sendto
@@ -86,10 +91,14 @@ private:
 	int m_clientGameId;
 	int m_clientGameFrame;
 	int m_clientGameTime;
+	int m_clientTime;
 
     int m_serverGameId;
     int m_serverGameFrame;
     int m_serverGameTime;
+	int m_serverTime;
+
+	int m_startTime;
 
 	int m_deltaTime;
 	int m_frame;

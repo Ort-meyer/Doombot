@@ -18,6 +18,8 @@ Proxy::Proxy()
     m_compressor = idCompressor::AllocRunLength_ZeroBased();
     m_msgChannel = idMsgChannel();
     m_msgChannel.Init(32);    
+
+	m_startTime = timeGetTime();
 }
 
 
@@ -42,6 +44,8 @@ void Proxy::StartLoop()
     while (true)
     {
         RecieveUpdateFromServer();
+		SyncTime();
+		m_frame++;
     }
 }
 
@@ -276,6 +280,12 @@ void Proxy::PokeServer()
 
 	m_messageQueue.push(t_msgToSend);
 	SendMessages();
+}
+
+void Proxy::SyncTime()
+{
+	int t_currentTime = timeGetTime() - m_startTime;
+	m_clientTime += t_currentTime;
 }
 
 int Proxy::SendToServer(const idBitMsg & p_msg)
