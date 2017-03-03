@@ -235,6 +235,11 @@ void Proxy::SendUserInfo()
 
     m_msgChannel.SendReliableMessage(t_msg);
 
+	// This apparently has to be done a few times...
+	PokeServer();
+	PokeServer();
+	PokeServer();
+	PokeServer();
     //SendEmptyToServer(false);
     //SendEmptyToServer(false);
     //SendEmptyToServer(false);
@@ -288,6 +293,43 @@ void Proxy::SyncTime()
 	m_clientTime += t_currentTime;
 }
 
+void Proxy::QueueUserInput()
+{
+	idBitMsg t_msg;
+	byte t_msgBuffer[16384];
+	t_msg.Init(t_msgBuffer, sizeof(t_msgBuffer));
+
+	t_msg.WriteLong(m_messageSequence);
+	t_msg.WriteLong(m_clientGameId);
+	t_msg.WriteLong(m_snapshotSequence);
+	t_msg.WriteByte(2);
+	t_msg.WriteShort(17); //clientPrediction
+
+	t_msg.WriteLong(m_frame);
+	t_msg.WriteByte(1);//numUserCmds
+
+	t_msg.WriteLong(m_clientGameTime);
+
+	t_msg.WriteByte(24);//Buttons
+	t_msg.WriteShort(0);//mx
+	t_msg.WriteShort(0);//my
+	t_msg.WriteChar(100); //forwardmove
+	t_msg.WriteChar(0); //rightmove	
+	t_msg.WriteChar(0);//upmove
+
+	t_msg.WriteShort(1742);//Angles[0] 1742
+	t_msg.WriteShort(m_clientTime * 16);//Angles[1] -9211
+	t_msg.WriteShort(0);//Angles[2]
+
+
+	idBitMsg t_sendMsg;
+
+	t_sendMsg = m_msgChannel.AppendMessageInfo(t_sendMsg, m_clientTime, t_msg);
+
+	m_messageQueue.push(t_sendMsg);
+	//Send();
+}
+
 int Proxy::SendToServer(const idBitMsg & p_msg)
 {
    return sendto(m_socket, (char*)p_msg.GetData(), p_msg.GetSize(), 0, (SOCKADDR*)&m_recieveAddress, sizeof(m_recieveAddress));
@@ -330,7 +372,7 @@ void Proxy::RecieveUpdateFromServer()
     ////lastPacketTime = clientTime;
     ////std::cout << "Process Lyckades" << std::endl;
     HandleReliableServerMessage();
-    //ProcessUnreliableServerMessage(msg);
+    HandleUnreliableServerMessage(t_msg);
 
 }
 
@@ -377,72 +419,22 @@ void Proxy::HandleReliableServerMessage()
     }
 }
 
-void Proxy::HandleUnreliableServerMessage()
+void Proxy::HandleUnreliableServerMessage(const idBitMsg& p_msg)
 {
-    //int i, j, index, id, numDuplicatedUsercmds, aheadOfServer, numUsercmds, delta;
-    //int serverGameInitId, serverGameFrame, serverGameTime;
-    ////idDict serverSI;
-    ////usercmd_t *last;
-    //bool pureWait;
-    //
-    //serverGameInitId = msg.ReadLong();
-    //
-    //id = msg.ReadByte();
-    //switch (id)
-    //{
-    //    //Empty
-    //case 0:
-    //{
-    //    break;
-    //
-    //}
-    ////Ping
-    //case 1:
-    //{
-    //    ProcessPingFromServer();
-    //}
-    ////Snapshot
-    //case 3:
-    //{
-    //    //std::cout << "Snapshot" << std::endl;
-    //    // if the snapshot is from a different game
-    //    if (serverGameInitId != gameInitId)
-    //    {
-    //        std::cout << "ignoring snapshot with != gameInitId\n";
-    //    }
-    //
-    //
-    //    snapshotSequence = msg.ReadLong();
-    //    snapshotGameFrame = msg.ReadLong();
-    //    snapshotGameTime = msg.ReadLong();
-    //    numDuplicatedUsercmds = msg.ReadByte();
-    //    aheadOfServer = msg.ReadShort();
-    //
-    //    ProcessSnapshot(clientNum, snapshotSequence, snapshotGameFrame, snapshotGameTime, numDuplicatedUsercmds, aheadOfServer, msg);
-    //
-    //    // if the snapshot is newer than the clients current game time
-    //    if (gameTime < snapshotGameTime)
-    //    {
-    //        gameTime = snapshotGameTime;
-    //    }
-    //    gameFrame = snapshotGameFrame;
-    //    clientTime = snapshotGameTime;
-    //    gameTime = snapshotGameTime;
-    //    SendUserCmdsToServer();
-    //    delta = gameTime - (snapshotGameTime + clientPrediction);
-    //
-    //    lastSnapshotTime = clientTime;
-    //
-    //
-    //    //std::cout << "received snapshot, gameInitId = " << gameInitId << " gameTime = " << gameTime << std::endl;
-    //
-    //
-    //    if (numDuplicatedUsercmds)
-    //    {
-    //        //std::cout << "server duplicated %d user commands before snapshot %d\n", numDuplicatedUsercmds, snapshotGameFrame;
-    //    }
-    //    break;
-    //}
-    //
-    //}
+
+	int temp = p_msg.ReadLong(); // Think this is the server id
+	int t_msgId = p_msg.ReadByte();
+	switch (t_msgId)
+	{
+	// Just empty
+	case 0:
+		break;
+	// Snapshot
+	case 3:	
+		m_snapshotSequence = p_msg.ReadLong();
+		m_clientGameFrame = p_msg.ReadLong();
+		m_clientGameTime = p_msg.ReadLong();
+		QueueUserInput();
+		break;
+	}
 }

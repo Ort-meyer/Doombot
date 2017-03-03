@@ -1,12 +1,11 @@
 #pragma once
-
+#define _WINSOCK_DEPRECATED_NO_WARNINGS
 #include <WinSock2.h>
 #include <queue>
 #include <iostream>
 
 #include "Compressor.h"
 #include "MsgChannel.h"
-
 using namespace std;
 class Proxy
 {
@@ -60,6 +59,11 @@ private:
 	Synchronizes time with the server*/
 	void SyncTime();
 
+	/**
+	Queues user input to be sent to the server.
+	This is done as a response to the server sending a snapshot
+	TODO Change this??*/
+	void QueueUserInput();
 
 
     /// Simple methods to send and recieve messages
@@ -74,7 +78,7 @@ private:
 
     void HandleReliableServerMessage();
 
-    void HandleUnreliableServerMessage();
+    void HandleUnreliableServerMessage(const idBitMsg& p_msg);
 
 	// Member variables
 	SOCKET m_socket;
@@ -102,6 +106,8 @@ private:
 
 	int m_deltaTime;
 	int m_frame;
+
+	int m_snapshotSequence;
 
 	idCompressor* m_compressor;
 	idMsgChannel m_msgChannel;
