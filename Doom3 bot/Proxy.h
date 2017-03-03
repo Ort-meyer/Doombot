@@ -39,6 +39,10 @@ private:
 	void RecieveFinalServerInfo();
 
 	/**
+	Sends message to server that we're finally connected*/
+	void FinalizeConnectionHandshake();
+
+	/**
 	Puts iser info into message channel*/
     void SendUserInfo();
 

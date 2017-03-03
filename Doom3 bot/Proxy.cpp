@@ -34,6 +34,7 @@ void Proxy::EstablishConnection()
 	// Do we really need to do this again?
 	SendConnectRequest();
     RecieveFinalServerInfo();
+	FinalizeConnectionHandshake();
 }
 
 void Proxy::StartLoop()
@@ -166,6 +167,27 @@ void Proxy::RecieveFinalServerInfo()
     m_clientGameTime = m_serverGameTime;
 
 
+}
+
+void Proxy::FinalizeConnectionHandshake()
+{
+	idBitMsg t_msg;
+	byte t_msgBuffer[16384];
+	t_msg.Init(t_msgBuffer, sizeof(t_msgBuffer));
+
+	//EmptyMessage
+	t_msg.WriteLong(m_messageSequence);
+	//t_msg.WriteLong(load ? gameInitId : -2);
+	t_msg.WriteLong(m_clientGameId);
+	t_msg.WriteLong(1);
+	t_msg.WriteByte(0); //CLIENT_UNRELIABLE_MESSAGE_EMPTY
+
+	idBitMsg t_msgToSend;
+
+	t_msgToSend = m_msgChannel.AppendMessageInfo(t_msgToSend, m_clientGameTime, t_msg);
+
+	m_messageQueue.push(t_msgToSend);
+	SendMessages();
 }
 
 void Proxy::SendUserInfo()
