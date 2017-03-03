@@ -46,9 +46,15 @@ private:
 	Puts iser info into message channel*/
     void SendUserInfo();
 
+
+	/// Core loop methods
 	/**
 	Sends all queued messages to the server*/
 	void SendMessages();
+
+	/**
+	Sends an empty message to the server. This is apparently really necessary*/
+	void PokeServer();
 
 
     /// Simple methods to send and recieve messages
