@@ -350,7 +350,7 @@ void Proxy::QueueUserInput()
 	t_sendMsg = m_msgChannel.AppendMessageInfo(t_sendMsg, m_clientTime, t_msg);
 
 	m_messageQueue.push(t_sendMsg);
-	//Send();
+	SendMessages();
 }
 
 int Proxy::SendToServer(const idBitMsg & p_msg)
