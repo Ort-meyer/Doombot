@@ -71,7 +71,7 @@ private:
     int SendToServer(const idBitMsg& p_msg);
     // Recieves message from server and stores in p_msg. Does not need to be initialized (I think)
     int RecieveFromServer(idBitMsg* p_msg);
-
+	int RecieveFromServerDEBUG(idBitMsg* p_msg);
 
     /// Methods to interpret the messages sent from the server
     void RecieveUpdateFromServer();

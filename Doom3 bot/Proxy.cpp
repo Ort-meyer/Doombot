@@ -102,7 +102,7 @@ void Proxy::SendConnectRequest()
 void Proxy::HandleGamePakChecksum()
 {
     idBitMsg t_msg;
-    RecieveFromServer(&t_msg);
+    int result = RecieveFromServer(&t_msg);
     // t_msg.SetSize(sizeof(msgBuf)); // This SHOULD NOT have to be done. At all
     t_msg.SetReadBit(0);
     t_msg.SetReadCount(0);
@@ -120,6 +120,7 @@ void Proxy::HandleGamePakChecksum()
 
 	// Write message to send to server
 	byte t_msgBuffer[16384];
+	t_msg = idBitMsg();
 	t_msg.Init(t_msgBuffer, sizeof(t_msgBuffer));
 
 	int	t_sendChecksums[128];
@@ -157,11 +158,10 @@ void Proxy::RecieveFinalServerInfo()
 	idBitMsg t_msg;
 	RecieveFromServer(&t_msg);
 
-	//t_msg.SetSize(sizeof(msgBuf));
 	t_msg.SetReadBit(0);// not needed, is it?
 	t_msg.SetReadCount(0);// not needed, is it?
 
-	char temp[1024];
+	char temp[2048];
 	t_msg.ReadShort();
 	t_msg.ReadString(temp, sizeof(temp));
 
@@ -357,18 +357,48 @@ int Proxy::RecieveFromServer(idBitMsg * p_msg)
     memcpy(t_msgDataBuffer, t_recieveBuffer, sizeof(t_recieveBuffer));
 
     // Initialize recieve message
-    //p_msg = new idBitMsg();
     p_msg->Init(t_msgDataBuffer, sizeof(t_msgDataBuffer));
 	p_msg->SetSize(sizeof(t_msgDataBuffer));
 
-
-	//char buffer[1024];
-	//p_msg->ReadShort();
-	//p_msg->ReadString(buffer, 1024);
-	//m_challangeNr = p_msg->ReadLong();
-	//m_serverId = p_msg->ReadShort();
-
     return t_res;
+}
+
+int Proxy::RecieveFromServerDEBUG(idBitMsg * t_msg)
+{
+	char t_recieveBuffer[16384]; //// Might need to be bigger!
+	int t_recieveAddrSize = sizeof(m_recieveAddress);
+	int t_res = recvfrom(m_socket, t_recieveBuffer, 1024, 0, (SOCKADDR*)&m_recieveAddress, &t_recieveAddrSize);
+	if (t_res == SOCKET_ERROR)
+	{
+		return t_res;
+	}
+
+	// Copy over data from server
+	byte t_msgDataBuffer[16384];
+	memcpy(t_msgDataBuffer, t_recieveBuffer, sizeof(t_recieveBuffer));
+
+	// Initialize recieve message
+	//p_msg = new idBitMsg();
+	t_msg->Init(t_msgDataBuffer, sizeof(t_msgDataBuffer));
+	t_msg->SetSize(sizeof(t_msgDataBuffer));
+	t_msg->SetReadBit(0);// not needed, is it?
+	t_msg->SetReadCount(0);// not needed, is it?
+
+	char temp[2048];
+	t_msg->ReadShort();
+	t_msg->ReadString(temp, sizeof(temp));
+
+	m_clientNr = t_msg->ReadLong();
+
+	m_serverGameId = t_msg->ReadLong();
+	m_serverGameFrame = t_msg->ReadLong();
+	m_serverGameTime = t_msg->ReadLong();
+
+	m_clientGameId = m_serverGameId;
+	m_clientGameFrame = m_serverGameFrame;
+	m_clientGameTime = m_serverGameTime;
+
+	return t_res;
 }
 
 void Proxy::RecieveUpdateFromServer()
