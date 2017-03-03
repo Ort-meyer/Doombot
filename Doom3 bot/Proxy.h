@@ -78,7 +78,7 @@ private:
 
     void HandleReliableServerMessage();
 
-    void HandleUnreliableServerMessage(const idBitMsg& p_msg);
+    void HandleUnreliableServerMessage(idBitMsg p_msg);
 
 	// Member variables
 	SOCKET m_socket;
@@ -103,6 +103,7 @@ private:
 	int m_serverTime;
 
 	int m_startTime;
+	int m_prevTime;
 
 	int m_deltaTime;
 	int m_frame;

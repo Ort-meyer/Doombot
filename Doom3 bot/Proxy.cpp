@@ -24,6 +24,7 @@ Proxy::Proxy()
     m_msgChannel.Init(32);    
 
 	m_startTime = timeGetTime();
+	m_prevTime = 0;
 }
 
 
@@ -294,8 +295,23 @@ void Proxy::PokeServer()
 
 void Proxy::SyncTime()
 {
-	int t_currentTime = timeGetTime() - m_startTime;
-	m_clientTime += t_currentTime;
+	int t_currentTime = timeGetTime();
+	int t_addTime = 0;
+	if (t_currentTime - m_prevTime < 0)
+	{
+		t_addTime = 0;
+	}
+	else if (t_currentTime - m_prevTime > 100)
+	{
+		t_addTime = 100;
+	}
+	else
+	{
+		t_addTime = t_currentTime - m_prevTime;
+	}
+
+	m_prevTime = t_currentTime;
+	m_clientTime += t_addTime;
 }
 
 void Proxy::QueueUserInput()
@@ -346,7 +362,7 @@ int Proxy::RecieveFromServer(idBitMsg * p_msg)
 {
     char t_recieveBuffer[16384]; //// Might need to be bigger!
     int t_recieveAddrSize = sizeof(m_recieveAddress);
-    int t_res = recvfrom(m_socket, t_recieveBuffer, 1024, 0, (SOCKADDR*)&m_recieveAddress, &t_recieveAddrSize);
+    int t_res = recvfrom(m_socket, t_recieveBuffer, 16384, 0, (SOCKADDR*)&m_recieveAddress, &t_recieveAddrSize);
     if (t_res == SOCKET_ERROR)
     {
         return t_res;
@@ -403,34 +419,44 @@ int Proxy::RecieveFromServerDEBUG(idBitMsg * t_msg)
 
 void Proxy::RecieveUpdateFromServer()
 {
-    idBitMsg t_msg;
 
+	// For some certainly really amazing reason, my RecieveFromServer method doesn't work here...
+	idBitMsg		t_msg;
+	char			t_recieveBuffer[16384];
+	byte			t_msgBuffer[16384];
 
-    RecieveFromServer(&t_msg);
+	int size = sizeof(m_recieveAddress);
+	int result = recvfrom(m_socket, t_recieveBuffer, 16384, 0, (SOCKADDR*)&m_recieveAddress, &size);
+	if (result == SOCKET_ERROR)
+	{
+		std::cout << "recvfrom failed with error:  " << WSAGetLastError() << std::endl;
+		return;
+	}
+	memcpy(&t_msgBuffer, t_recieveBuffer, sizeof(t_recieveBuffer));
+	t_msg.Init(t_msgBuffer, sizeof(t_msgBuffer));
+	t_msg.SetSize(sizeof(t_msgBuffer));
 
-    t_msg.ReadShort(); // Read id. Needed?
+	t_msg.ReadShort();
 
-    if (!m_msgChannel.Process(m_clientGameTime, t_msg, m_messageSequence)) {
-        return;		// out of order, duplicated, fragment, etc.
-    }
-    
-    ////lastPacketTime = clientTime;
-    ////std::cout << "Process Lyckades" << std::endl;
-    HandleReliableServerMessage();
-    HandleUnreliableServerMessage(t_msg);
+	if (!m_msgChannel.Process(m_clientTime, t_msg, m_messageSequence)) {
+		return;		// out of order, duplicated, fragment, etc.
+	}
 
+	HandleReliableServerMessage();
+	HandleUnreliableServerMessage(t_msg);
 }
 
 void Proxy::HandleReliableServerMessage()
 {
-    idBitMsg	t_msg;
-    byte		t_msgBuffer[16384];
+    idBitMsg t_msg;
+    byte t_msgBuffer[16384];
+	byte type;
 
     t_msg.Init(t_msgBuffer, sizeof(t_msgBuffer));
 
     while (m_msgChannel.GetReliableMessage(t_msg))
     {
-        byte type = t_msg.ReadByte();
+        type = t_msg.ReadByte();
         switch (type)
         {
         //Print
@@ -450,7 +476,7 @@ void Proxy::HandleReliableServerMessage()
         //Applysnapshot
         case 6:
         {
-            //serverMessageSequence = t_msg.ReadLong();
+            m_messageSequence = t_msg.ReadLong();
            // ProcessApplySnapshot();
             break;
         }
@@ -464,7 +490,7 @@ void Proxy::HandleReliableServerMessage()
     }
 }
 
-void Proxy::HandleUnreliableServerMessage(const idBitMsg& p_msg)
+void Proxy::HandleUnreliableServerMessage(idBitMsg p_msg)
 {
 
 	int temp = p_msg.ReadLong(); // Think this is the server id
@@ -475,10 +501,12 @@ void Proxy::HandleUnreliableServerMessage(const idBitMsg& p_msg)
 	case 0:
 		break;
 	// Snapshot
+	case 1:
 	case 3:	
 		m_snapshotSequence = p_msg.ReadLong();
 		m_clientGameFrame = p_msg.ReadLong();
 		m_clientGameTime = p_msg.ReadLong();
+		m_clientTime = m_clientGameTime;
 		QueueUserInput();
 		break;
 	}
