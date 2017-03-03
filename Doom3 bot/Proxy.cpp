@@ -504,7 +504,7 @@ void Proxy::HandleUnreliableServerMessage(idBitMsg p_msg)
 	case 1:
 	case 3:	
 		m_snapshotSequence = p_msg.ReadLong();
-		m_clientGameFrame = p_msg.ReadLong();
+		m_frame = p_msg.ReadLong();
 		m_clientGameTime = p_msg.ReadLong();
 		m_clientTime = m_clientGameTime;
 		QueueUserInput();
