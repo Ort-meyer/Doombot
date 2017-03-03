@@ -38,7 +38,13 @@ private:
 	Stores some server info when we're finally connected*/
 	void RecieveFinalServerInfo();
 
+	/**
+	Puts iser info into message channel*/
     void SendUserInfo();
+
+	/**
+	Sends all queued messages to the server*/
+	void SendMessages();
 
 
     /// Simple methods to send and recieve messages

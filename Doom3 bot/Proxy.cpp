@@ -171,7 +171,8 @@ void Proxy::RecieveFinalServerInfo()
 void Proxy::SendUserInfo()
 {
     idBitMsg t_msg;
-    byte t_msgBuffer[16384];
+
+	byte t_msgBuffer[16384];
     t_msg.Init(t_msgBuffer, sizeof(t_msgBuffer));
 
     t_msg.WriteByte(1);
@@ -212,6 +213,26 @@ void Proxy::SendUserInfo()
     //SendEmptyToServer(false);
     //SendEmptyToServer(false);
     //SendEmptyToServer(false);
+}
+
+void Proxy::SendMessages()
+{
+	//if (m_messageQueue.size() > 0)
+	//{
+	//	idBitMsg t_msg;
+	//	while (m_messageQueue.size() > 0)
+	//	{
+	//		t_msg = m_messageQueue.front();
+	//		m_messageQueue.pop();
+	//		SendToServer(t_msg);
+	//	}
+	//}
+	for (size_t i = 0; i < m_messageQueue.size(); i++)
+	{
+		idBitMsg t_msg = m_messageQueue.front();
+		m_messageQueue.pop();
+		SendToServer(t_msg);
+	}
 }
 
 int Proxy::SendToServer(const idBitMsg & p_msg)
