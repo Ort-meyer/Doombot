@@ -7,6 +7,17 @@
 #include "Compressor.h"
 #include "MsgChannel.h"
 using namespace std;
+
+/**
+Enum to enable the bot to move around*/
+enum Movement : int
+{
+	Forward = 0x01,
+	Backward = 0x02,
+	Right = 0x04,
+	Left = 0x08,
+};
+
 class Proxy
 {
 public:
@@ -15,6 +26,19 @@ public:
 
 	void EstablishConnection();
     void StartLoop();
+
+	/**
+	Sets how the bot will move in the future.
+	Combine several enums for multiple movements*/
+	void SetMovement(Movement p_movementMask);
+
+	/**
+	Sets the character to simulate moving the mouse as given by parameters
+	This is done every frame until SetMouseMovement is called again.
+	These values are ment to be huge. One full turn is about 30000 it seems.
+	(I haven't bothere to test it completely. Seriously this is annoying enough
+	as it it)*/
+	void SetAngles(int p_x, int p_y, int p_z);
 
 
 private:
@@ -109,6 +133,11 @@ private:
 	int m_frame;
 
 	int m_snapshotSequence;
+
+	int m_movementMask;
+	int m_rotatex;
+	int m_rotatey;
+	int m_rotatez;
 
 	idCompressor* m_compressor;
 	idMsgChannel m_msgChannel;

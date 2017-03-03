@@ -55,6 +55,18 @@ void Proxy::StartLoop()
     }
 }
 
+void Proxy::SetMovement(Movement p_movementMask)
+{
+	m_movementMask = (int)p_movementMask;
+}
+
+void Proxy::SetAngles(int p_x, int p_y, int p_z)
+{
+	m_rotatex = p_x;
+	m_rotatey = p_y;
+	m_rotatez = p_z;
+}
+
 void Proxy::ChallangeServer()
 {
     /// Send challange first
@@ -334,13 +346,50 @@ void Proxy::QueueUserInput()
 	t_msg.WriteByte(24);//Buttons
 	t_msg.WriteShort(0);//mx
 	t_msg.WriteShort(0);//my
-	t_msg.WriteChar(100); //forwardmove
-	t_msg.WriteChar(0); //rightmove	
+
+
+	static int counter = 0;
+	static int i = 0;
+	counter++;
+	if (counter == 120)
+	{
+		counter = 0;
+		i += 15000;
+		m_rotatex = i;
+		if (m_movementMask == Movement::Forward)
+		{
+			m_movementMask = Movement::Right;
+		}
+		else
+		{
+			m_movementMask = Movement::Forward;
+		}
+	}
+
+
+
+
+	// Forward movement
+	if(m_movementMask & Movement::Forward)
+		t_msg.WriteChar(100);
+	else if (m_movementMask & Movement::Backward)
+		t_msg.WriteChar(-100);
+	else
+		t_msg.WriteChar(0);
+	
+	// Backward movement
+	if (m_movementMask & Movement::Right)
+		t_msg.WriteChar(100); 
+	else if (m_movementMask & Movement::Left)
+		t_msg.WriteChar(-100); 
+	else
+		t_msg.WriteChar(0);
+
 	t_msg.WriteChar(0);//upmove
 
-	t_msg.WriteShort(1742);//Angles[0] 1742
-	t_msg.WriteShort(m_clientTime * 16);//Angles[1] -9211
-	t_msg.WriteShort(0);//Angles[2]
+	t_msg.WriteShort(m_rotatex);//Angles[0] 1742
+	t_msg.WriteShort(m_rotatey);//Angles[1] -9211
+	t_msg.WriteShort(m_rotatez);//Angles[2]
 
 	 
 	 
